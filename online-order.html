@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Online Order - Restaurant ATA</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&family=Pacifico&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+    <link href="v.css" rel="stylesheet" />
+  </head>
+  <body style="background-color: #f8f9fa">
+    <!-- Navbar & Hero Header -->
+    <div class="container-fluid position-relative p-0">
+      <nav
+        class="navbar navbar-expand-lg navbar-dark bg-dark px-4 px-lg-5 py-3 py-lg-0"
+      >
+        <a href="index.html" class="navbar-brand p-0">
+          <h1 class="text-primary m-0">
+            <i class="fa fa-utensils me-3"></i>ATA
+          </h1>
+        </a>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <div class="navbar-nav ms-auto py-0 pe-4">
+            <a href="index.html" class="nav-item nav-link">Home</a>
+            <a href="index.html#about" class="nav-item nav-link">About</a>
+            <a href="index.html#service" class="nav-item nav-link">Service</a>
+            <a href="index.html#menu" class="nav-item nav-link">Menu</a>
+            <a href="index.html#reservation" class="nav-item nav-link"
+              >Reservation</a
+            >
+            <a href="index.html#contact" class="nav-item nav-link">Contact</a>
+          </div>
+          <a href="index.html#reservation" class="btn btn-primary py-2 px-4"
+            >Book A Table</a
+          >
+        </div>
+      </nav>
+      <div class="container-fluid py-5 bg-dark hero-header mb-5">
+        <div class="container my-5 py-5 text-center">
+          <h1
+            class="display-3 text-white mb-3 animate__animated animate__slideInDown"
+          >
+            Express Online Ordering
+          </h1>
+          <p class="text-white-50 mx-auto" style="max-width: 600px">
+            Get your favorite hot meals delivered to your doorstep within 30
+            minutes.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="container py-5">
+      <div class="row g-5">
+        <div class="col-lg-8">
+          <div class="bg-white p-4 rounded shadow-sm">
+            <h4 class="mb-4 fw-bold text-dark">
+              <i class="fa fa-shopping-basket text-primary me-2"></i>Вашата
+              кошничка
+            </h4>
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead>
+                  <tr>
+                    <th>Производ</th>
+                    <th>Цена</th>
+                    <th class="text-center">Количина</th>
+                    <th>Вкупно</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="cart-items-body"></tbody>
+              </table>
+            </div>
+            <div
+              class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top"
+            >
+              <h5 class="fw-bold">Вкупно за плаќање:</h5>
+              <h4 class="text-primary fw-bold" id="cart-total-price">$0.00</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="bg-dark p-4 rounded shadow text-white">
+            <h4 class="mb-4 ff-secondary text-primary">
+              <i class="fa fa-truck me-2"></i>Податоци за достава
+            </h4>
+            <form id="order-form">
+              <div class="mb-3">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="order-name"
+                  placeholder="Вашето Име"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="order-address"
+                  placeholder="Адреса на живеење"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary w-100 fw-bold py-3">
+                ПОТВРДИ НАРАЧКА
+              </button>
+            </form>
+
+            <div
+              id="tracking-box"
+              class="mt-4 p-3 bg-secondary rounded d-none text-center"
+            >
+              <h5 id="tracking-title" class="text-warning fw-bold">
+                <i id="status-icon" class="fa fa-spinner fa-spin me-2"></i
+                >Статус на нарачка
+              </h5>
+              <p id="tracking-status" class="mb-0 fw-bold fs-5">
+                Примена во кујна...
+              </p>
+              <small class="text-white-50">Очекувано време: 30 мин.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function displayCart() {
+        const cart = JSON.parse(localStorage.getItem("restaurant_cart")) || [];
+        const tableBody = document.getElementById("cart-items-body");
+        const totalElement = document.getElementById("cart-total-price");
+
+        tableBody.innerHTML = "";
+        let total = 0;
+
+        if (cart.length === 0) {
+          tableBody.innerHTML =
+            '<tr><td colspan="5" class="text-center text-muted py-4">Кошничката е празна. Изберете нешто од менито!</td></tr>';
+          totalElement.innerText = "$0.00";
+          return;
+        }
+
+        cart.forEach((item, index) => {
+          const itemTotal = item.price * item.quantity;
+          total += itemTotal;
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="fw-bold">${item.name}</td>
+            <td>$${item.price.toFixed(2)}</td>
+            <td class="text-center">${item.quantity}</td>
+            <td class="text-primary fw-bold">$${itemTotal.toFixed(2)}</td>
+            <td><button class="btn btn-sm btn-danger rounded-circle" onclick="removeItemFromCart('${item.name}')">&times;</button></td>
+        `;
+          tableBody.appendChild(row);
+        });
+
+        totalElement.innerText = `$${total.toFixed(2)}`;
+      }
+
+      function removeItemFromCart(name) {
+        let cart = JSON.parse(localStorage.getItem("restaurant_cart")) || [];
+        const item = cart.find((i) => i.name === name);
+
+        if (item) {
+          if (item.quantity > 1) {
+            item.quantity -= 1; // Се трга само 1 парче ако има повеќе
+          } else {
+            cart = cart.filter((i) => i.name !== name); // Се брише целосно ако има само 1
+          }
+        }
+
+        localStorage.setItem("restaurant_cart", JSON.stringify(cart));
+        displayCart(); // Повторно нацртај ја табелата
+      }
+
+      // Симулација на следење во реално време (Real-time tracking)
+      document.getElementById("order-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const statusIcon = document.getElementById("status-icon");
+        const trackingTitle = document.getElementById("tracking-title");
+
+        // Ресетирај ги почетните класи за иконата и насловот при нова нарачка
+        statusIcon.className = "fa fa-spinner fa-spin me-2";
+        trackingTitle.className = "text-warning fw-bold";
+
+        // Прикажи го боксот за следење
+        document.getElementById("tracking-box").classList.remove("d-none");
+
+        const statuses = [
+          "🍳 Вашата храна се подготвува од нашите шефови...",
+          "🛵 Храната е предадена на доставувачот!",
+          "📍 Доставувачот е во близина на вашата локација...",
+          "✅ Нарачката е успешно доставена. Пријатно јадење!",
+        ];
+
+        let currentStep = 0;
+        const interval = setInterval(() => {
+          if (currentStep < statuses.length) {
+            document.getElementById("tracking-status").innerText =
+              statuses[currentStep];
+
+            // Ако стигнеме до последниот статус (Доставено), го запираме вртењето
+            if (currentStep === statuses.length - 1) {
+              statusIcon.className = "fa fa-check-circle me-2"; // Нова статична икона со штиклирање
+              trackingTitle.className = "text-success fw-bold"; // Зелен наслов
+            }
+
+            currentStep++;
+          } else {
+            clearInterval(interval);
+            localStorage.removeItem("restaurant_cart"); // Исчисти кошничка на крај
+            displayCart(); // Освежи ја табелата
+          }
+        }, 5000); // Се менува статус на секои 5 секунди за симулација
+      });
+
+      window.onload = displayCart;
+    </script>
+
+    <!-- Minimal Footer -->
+    <div
+      class="container-fluid bg-dark text-light footer pt-5 mt-5 text-center"
+    >
+      <div class="container py-3">
+        <p class="mb-0">
+          &copy; <a class="border-bottom" href="#">Restaurant ATA</a>, All
+          Rights Reserved.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

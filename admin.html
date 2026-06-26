@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Restaurant ATA</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="v.css" rel="stylesheet" />
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <div
+        class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4"
+      >
+        <div>
+          <h1 class="fw-bold text-dark">
+            <i class="fa fa-user-shield text-primary me-2"></i>Admin Dashboard
+          </h1>
+          <p class="text-muted mb-0">
+            Управување и преглед на сите активни резервации за маси
+          </p>
+        </div>
+        <a href="index.html" class="btn btn-outline-dark"
+          ><i class="fa fa-arrow-left me-2"></i>Назад кон почетна</a
+        >
+      </div>
+
+      <div class="row g-4 mb-5">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm p-4 text-center">
+            <h6 class="text-muted text-uppercase small fw-bold">
+              Вкупно резервации
+            </h6>
+            <h2 class="text-primary fw-bold mb-0" id="stat-total">0</h2>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm p-4 text-center">
+            <h6 class="text-muted text-uppercase small fw-bold">
+              Резервирани Столови
+            </h6>
+            <h2 class="text-warning fw-bold mb-0" id="stat-seats">0 / 50</h2>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm p-4 text-center">
+            <h6 class="text-muted text-uppercase small fw-bold">
+              Преостанати Слободни Места
+            </h6>
+            <h2 class="text-success fw-bold mb-0" id="stat-available">50</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+          <h4 class="fw-bold text-dark mb-4">
+            <i class="fa fa-list text-primary me-2"></i>Листа на резервации
+          </h4>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Име и презиме</th>
+                  <th scope="col">Е-маил</th>
+                  <th scope="col">Датум & Време</th>
+                  <th scope="col" class="text-center">Број на луѓе</th>
+                  <th scope="col">Посебно барање</th>
+                  <th scope="col" class="text-center">Акција</th>
+                </tr>
+              </thead>
+              <tbody id="reservations-table-body">
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-muted">
+                    Се вчитаат податоците...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Функција за влечење податоци и полнење на табелата
+      async function loadDashboardData() {
+        try {
+          const response = await fetch("/api/status");
+          const data = await response.json();
+
+          // Ажурирај ги статистичките картички
+          document.getElementById("stat-total").innerText =
+            data.totalReservations;
+          document.getElementById("stat-seats").innerText =
+            `${data.bookedSeats} / ${data.maxCapacity}`;
+          document.getElementById("stat-available").innerText =
+            data.availableSeats;
+
+          const tableBody = document.getElementById("reservations-table-body");
+          tableBody.innerHTML = ""; // Исчисти ја табелата пред полнење
+
+          if (data.allReservations.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Во моментов нема активни резервации.</td></tr>`;
+            return;
+          }
+
+          // Пополни ја табелата со редови
+          data.allReservations.forEach((res) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>#${res.id}</td>
+              <td class="fw-bold text-dark">${res.name}</td>
+              <td>${res.email}</td>
+              <td><span class="badge bg-secondary py-2 px-3">${res.date}</span></td>
+              <td class="text-center fw-bold"><i class="fa fa-users text-muted me-1"></i> ${res.people}</td>
+              <td class="text-muted italic" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${res.request}
+              </td>
+              <td class="text-center">
+                <button class="btn btn-danger btn-sm px-3 rounded-pill" onclick="deleteReservation(${res.id})">
+                  <i class="fa fa-trash-alt me-1"></i> Избриши
+                </button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        } catch (error) {
+          console.error("Грешка при влечење на податоците:", error);
+        }
+      }
+
+      // Функција за праќање барање за бришење до Backend серверот
+      async function deleteReservation(id) {
+        if (
+          confirm(
+            `Дали сте сигурни дека сакате да ја избришете резервацијата со број #${id}?`,
+          )
+        ) {
+          try {
+            const response = await fetch(`/api/reservations/${id}`, {
+              method: "DELETE",
+            });
+            const result = await response.json();
+
+            if (result.success) {
+              alert(result.message);
+              loadDashboardData(); // Освежи ја табелата автоматски
+            } else {
+              alert("Грешка при бришење.");
+            }
+          } catch (error) {
+            console.error("Серверска грешка при бришење:", error);
+          }
+        }
+      }
+
+      // Стартувај го вчитувањето веднаш при отворање на страната
+      window.onload = loadDashboardData;
+    </script>
+  </body>
+</html>
