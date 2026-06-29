@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Овде ќе се чуваат резервациите привремено во меморија (додека работи серверот)
 let reservations = [];
@@ -14,8 +14,33 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Овозможи му на серверот да ги чита твоите статични фајлови (HTML, CSS, слики)
-// Претпоставуваме дека твоите фајлови се во истиот фолдер
 app.use(express.static(__dirname));
+
+// --- РУТИ ЗА HTML СТРАНИЦИТЕ ---
+// Овие рути гарантираат дека страниците ќе се отворат без разлика дали корисникот пишува со или без .html
+
+// Главна страница
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Кошничка (Online Order)
+app.get('/online-order', (req, res) => {
+    res.sendFile(path.join(__dirname, 'online-order.html'));
+});
+
+// Master Chefs страница
+app.get('/chefs', (req, res) => {
+    res.sendFile(path.join(__dirname, 'chefs.html'));
+});
+
+// Quality Food страница
+app.get('/quality-food', (req, res) => {
+    res.sendFile(path.join(__dirname, 'quality-food.html'));
+});
+
+
+// --- API РУТИ ЗА REZERVACII ---
 
 // 1. Рута за примање на резервација од формата
 app.post('/book-table', (req, res) => {
@@ -68,12 +93,7 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-// Стартувај го серверот
-app.listen(PORT, () => {
-    console.log(`Серверот е стартуван на http://localhost:${PORT}`);
-});
-
-// Провери дали рутата во server.js изгледа ОВАКА:
+// 3. Рута за бришење на резервација (ПОМЕСТЕНА НАД LISTEN)
 app.delete('/api/reservations/:id', (req, res) => {
     const reservationId = parseInt(req.params.id);
     
@@ -86,4 +106,11 @@ app.delete('/api/reservations/:id', (req, res) => {
     } else {
         return res.status(404).json({ success: false, message: "Резервацијата не е пронајдена." });
     }
+});
+
+
+// --- СТАРТУВАЊЕ НА СЕРВЕРОТ ---
+// Ова мора секогаш да биде најдолу во фајлот!
+app.listen(PORT, () => {
+    console.log(`Серверот е стартуван на http://localhost:${PORT}`);
 });
