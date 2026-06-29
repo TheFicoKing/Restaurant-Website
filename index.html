@@ -1058,7 +1058,7 @@
               Reservation
             </h5>
             <h1 class="text-white mb-4">Book A Table Online</h1>
-            <form action="https://restaurant-backend-kjtm.onrender.com/book-table" method="POST">
+            <form id="bookingForm">
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="form-floating">
@@ -1436,5 +1436,48 @@
         updateCartUI();
       });
     </script>
+
+    <script>
+document.getElementById('bookingForm').addEventListener('submit', function (e) {
+    e.preventDefault(); // Спречи го класичното испраќање и рефреширање на страницата
+
+    // Се земаат вредностите од полињата во формата
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const datetime = document.querySelector('input[placeholder="Date & Time"]').value;
+    const select_person = document.querySelector('select').value;
+    const special_request = document.querySelector('textarea')?.value || "Нема";
+
+    // Објектот што ќе го испратиме до серверот
+    const formData = {
+        name: name,
+        email: email,
+        datetime: datetime,
+        select_person: select_person,
+        special_request: special_request
+    };
+
+    // Испраќање со Fetch до твојот Render сервер
+    fetch('https://restaurant-backend-kjtm.onrender.com/book-table', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert(`Успешна резервација! Ве очекуваме, ${name}.`);
+            document.getElementById('bookingForm').reset(); // Ресетирај ја формата
+        } else {
+            alert('Се појави проблем со серверот. Ве молиме обидете се повторно.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Не може да се воспостави врска со серверот.');
+    });
+});
+</script>
   </body>
 </html>
